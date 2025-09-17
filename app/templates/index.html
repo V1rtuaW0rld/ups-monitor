@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>UPS Monitor</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <section id="header">
+        <h1>🖥️ État de l'onduleur</h1>
+    </section>
+
+    <section id="config">
+        <label for="pf-selector">Facteur de puissance :</label>
+        <select id="pf-selector">
+            <option value="0.6">0.6</option>
+            <option value="0.7" selected>0.7</option>
+            <option value="0.8">0.8</option>
+            <option value="0.9">0.9</option>
+        </select>
+
+        <label for="price-input">Prix du kWh :</label>
+        <input type="number" id="price-input" value="0.26" step="0.01" min="0">
+
+        <label for="unit-input">Unité :</label>
+        <input type="text" id="unit-input" value="€" maxlength="3">
+
+        <button id="save-button">Valider</button>
+    </section>
+
+    <section id="main-layout">
+        <div id="status">
+            <div id="ups-data">
+                <h2>Données UPS</h2>
+                <div id="ups-content">Chargement...</div>
+            </div>
+        </div>
+
+        <div id="graph">
+            <h2>Historique de consommation</h2>
+			<label for="range-selector">Plage :</label>
+            <select id="range-selector">
+                <option value="1h">1 heure</option>
+                <option value="2h">2 heures</option>
+                <option value="4h">4 heures</option>
+                <option value="8h">8 heures</option>
+                <option value="24h">24 heures</option>
+                <option value="48h">48 heures</option>
+                <option value="7d">7 jours</option>
+                <option value="14d">2 semaines</option>
+                <option value="30d">1 mois</option>
+            </select>
+            <canvas id="consoChart" width="400" height="200"></canvas>
+        </div>
+    </section>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

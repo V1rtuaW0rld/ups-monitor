@@ -1,0 +1,10 @@
+services:
+  ups-monitor:
+    build: .
+    image: ups-monitor:latest
+    container_name: ups-monitor
+    ports:
+      - "5010:5010"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data

@@ -1,0 +1,153 @@
+/* Structure générale */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.5;
+}
+body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+/* Titres */
+h1 {
+    color: #0055aa;
+    margin-bottom: 1em;
+}
+
+h2 {
+    color: #333;
+    font-size: 1.2em;
+    margin-top: 0.2em;
+    margin-bottom: 0.5em;
+}
+
+/* Bloc de titre principal */
+#header {
+    background: #fff;
+    padding: 1em;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 1.5em auto;
+    max-width: 1200px;
+}
+
+/* Bloc de configuration */
+#config {
+    background: #fff;
+    padding: 1em;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    margin: 1.5em auto;
+    max-width: 1200px;
+}
+
+/* Sélecteur de facteur de puissance */
+label {
+    font-weight: bold;
+    margin-right: 0.5em;
+}
+
+select {
+    padding: 0.3em 0.6em;
+    font-size: 1em;
+}
+
+/* Layout principal : données UPS + graphique */
+#main-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1em;
+}
+
+
+#status {
+    flex: 0 0 32%;
+    min-width: 280px;
+}
+
+#graph {
+    flex: 0 0 68%;
+    min-width: 400px;
+}
+
+@media (max-width: 800px) {
+    #main-layout {
+        flex-direction: column;
+    }
+
+    #status, #graph {
+        flex: 1 1 100%;
+    }
+}
+
+/* Bloc de données UPS */
+#ups-data {
+    background: #fff;
+    padding: 1em;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#ups-data p {
+    margin: 0.5em 0;
+}
+
+/* Bloc du graphique */
+#graph {
+    background: #fff;
+    padding: 1em;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Alerte batterie */
+.alert-battery {
+    background-color: #ffdddd;
+    border: 2px solid #ff4444;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Graphique responsive */
+canvas {
+    max-width: 100%;
+    display: block;
+}
+
+
+#config input[type="number"] {
+    width: 4em;
+    padding: 0.2em 0.4em;
+    font-size: 0.9em;
+    margin-right: 0.5em;
+}
+
+#config input[type="text"] {
+    width: 3em;
+    padding: 0.2em 0.4em;
+    font-size: 0.9em;
+    margin-right: 0.5em;
+}
+
+#save-button {
+    padding: 0.3em 0.6em;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+#pf-selector {
+    margin-right: 1.5em;
+}
+#config label,
+#config input,
+#config select,
+#config button {
+    margin-right: 0.8em;
+}
