@@ -73,25 +73,67 @@ def query_upsc_cli(ups_host, timeout=5.0):
             data[key.strip()] = value.strip()
     return data
 
+_working_host_cache = None
+
+def get_candidate_hosts(host):
+    global _working_host_cache
+    if _working_host_cache:
+        return [_working_host_cache, host]
+
+    candidates = [host]
+    if host in ("127.0.0.1", "localhost"):
+        # We might be in a Docker bridge container trying to reach the host
+        candidates.append("host.docker.internal")
+        try:
+            with open("/proc/net/route") as f:
+                for line in f:
+                    fields = line.strip().split()
+                    if len(fields) >= 3 and fields[1] == "00000000":
+                        gw_hex = fields[2]
+                        gw_ip = socket.inet_ntoa(bytes.fromhex(gw_hex)[::-1])
+                        if gw_ip not in candidates:
+                            candidates.append(gw_ip)
+        except Exception:
+            pass
+        if "172.17.0.1" not in candidates:
+            candidates.append("172.17.0.1")
+        lan_ip = os.environ.get("UPS_LAN_IP", "192.168.0.3")
+        if lan_ip and lan_ip not in candidates:
+            candidates.append(lan_ip)
+    return candidates
+
 def get_raw_nut_data(ups_host=None):
+    global _working_host_cache
     if not ups_host:
         ups_host = os.environ.get("UPS_HOST", "ups@192.168.0.3")
 
     ups_name, host, port = parse_ups_host(ups_host)
-    
-    # Try native socket first
-    try:
-        data = query_nut_socket(ups_name, host, port, timeout=3.0)
-        if data:
-            return data
-    except Exception as socket_err:
-        pass
-        
+    candidates = get_candidate_hosts(host)
+
+    last_err = None
+    for cand in candidates:
+        try:
+            data = query_nut_socket(ups_name, cand, port, timeout=2.0)
+            if data:
+                _working_host_cache = cand
+                return data
+        except Exception as e:
+            last_err = e
+            if cand == _working_host_cache:
+                _working_host_cache = None
+
     # Fallback to upsc cli if available
-    try:
-        return query_upsc_cli(ups_host, timeout=5.0)
-    except Exception as cli_err:
-        raise RuntimeError(f"Impossible de joindre le serveur NUT ({ups_host})")
+    for cand in candidates:
+        try:
+            cli_target = f"{ups_name}@{cand}:{port}" if port != 3493 else f"{ups_name}@{cand}"
+            data = query_upsc_cli(cli_target, timeout=3.0)
+            if data:
+                _working_host_cache = cand
+                return data
+        except Exception as e:
+            last_err = e
+
+    raise RuntimeError(f"Impossible de joindre le serveur NUT ({ups_host}). Candidats testés: {candidates}")
 
 def format_runtime(seconds):
     try:
