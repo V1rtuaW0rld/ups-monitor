@@ -4,8 +4,10 @@ services:
     image: ups-monitor:latest
     container_name: ups-monitor
     environment:
-      - UPS_HOST=ups@192.168.0.3
+      - UPS_HOST=ups@host.docker.internal
       - TIMEZONE=Europe/Paris
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "5010:5010"
     restart: unless-stopped
