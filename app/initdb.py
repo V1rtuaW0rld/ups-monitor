@@ -1,22 +1,7 @@
-import sqlite3
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from db import init_db
 
-conn = sqlite3.connect("data/conso.db")
-cursor = conn.cursor()
-
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS conso (
-        timestamp TEXT PRIMARY KEY,
-        watts INTEGER
-    )
-""")
-
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS coupures (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        start TEXT,
-        end TEXT
-    )
-""")
-
-conn.commit()
-conn.close()
+if __name__ == "__main__":
+    init_db()
+    print("Database initialized with WAL mode and schema.")

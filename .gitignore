@@ -1,0 +1,25 @@
+# Data & Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.save
+*.prod_backup
+data/backup/
+app/last_ob.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# IDE & workspace
+.vscode/
+.idea/
+.claude/
+*.code-workspace
+
+# Aider files
+.aider*
+
+# Docker copy
+docker-compose - Copy.yml

@@ -1,60 +1,305 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <title>UPS Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPS Monitor - Onduleur</title>
     <link rel="stylesheet" href="/static/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <section id="header">
-        <h1>🖥️ État de l'onduleur</h1>
-    </section>
+    <!-- Top Alert Banner (Hidden by default, shown during power cut) -->
+    <div id="battery-alert" class="alert-banner hidden">
+        <div class="alert-content">
+            <span class="alert-icon">⚡</span>
+            <div class="alert-text">
+                <strong>ALERTE COUPURE SECTEUR !</strong>
+                <span id="alert-runtime-msg">L'onduleur fonctionne actuellement sur batterie.</span>
+            </div>
+        </div>
+    </div>
 
-    <section id="config">
-        <label for="pf-selector">Facteur de puissance :</label>
-        <select id="pf-selector">
-            <option value="0.6">0.6</option>
-            <option value="0.7" selected>0.7</option>
-            <option value="0.8">0.8</option>
-            <option value="0.9">0.9</option>
-        </select>
-
-        <label for="price-input">Prix du kWh :</label>
-        <input type="number" id="price-input" value="0.26" step="0.01" min="0">
-
-        <label for="unit-input">Unité :</label>
-        <input type="text" id="unit-input" value="€" maxlength="3">
-
-        <button id="save-button">Valider</button>
-    </section>
-
-    <section id="main-layout">
-        <div id="status">
-            <div id="ups-data">
-                <h2>Données UPS</h2>
-                <div id="ups-content">Chargement...</div>
+    <!-- Header Bar -->
+    <header class="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+            </div>
+            <div class="brand-info">
+                <h1>UPS Monitor</h1>
+                <span class="brand-model" id="ups-model">EATON Ellipse ECO 1600</span>
             </div>
         </div>
 
-        <div id="graph">
-            <h2>Historique de consommation</h2>
-			<label for="range-selector">Plage :</label>
-            <select id="range-selector">
-                <option value="1h">1 heure</option>
-                <option value="2h">2 heures</option>
-                <option value="4h">4 heures</option>
-                <option value="8h">8 heures</option>
-                <option value="24h">24 heures</option>
-                <option value="48h">48 heures</option>
-                <option value="7d">7 jours</option>
-                <option value="14d">2 semaines</option>
-                <option value="30d">1 mois</option>
-            </select>
-            <canvas id="consoChart" width="400" height="200"></canvas>
-        </div>
-    </section>
+        <div class="nav-controls">
+            <div class="status-pill online" id="status-pill">
+                <span class="pulse-dot"></span>
+                <span id="status-text">En ligne</span>
+            </div>
 
+            <button class="icon-btn" id="theme-toggle" title="Basculer le thème clair/sombre">
+                <span id="theme-icon">🌙</span>
+            </button>
+
+            <button class="btn btn-secondary" id="btn-open-settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span>Paramètres</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="dashboard-container">
+
+        <!-- KPI Cards Grid -->
+        <section class="cards-grid">
+            <!-- Card 1: Puissance Active -->
+            <div class="card kpi-card">
+                <div class="card-header">
+                    <span class="card-title">Puissance Active</span>
+                    <span class="card-icon power">⚡</span>
+                </div>
+                <div class="card-body">
+                    <div class="main-metric">
+                        <span class="metric-value" id="real-watts">--</span>
+                        <span class="metric-unit">W</span>
+                    </div>
+                    <div class="sub-metrics">
+                        <div class="sub-metric">
+                            <span class="sub-label">Apparente</span>
+                            <span class="sub-val" id="apparent-va">-- VA</span>
+                        </div>
+                        <div class="sub-metric">
+                            <span class="sub-label">Facteur p.</span>
+                            <span class="sub-val" id="pf-display">cos φ 0.7</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Charge Onduleur -->
+            <div class="card kpi-card">
+                <div class="card-header">
+                    <span class="card-title">Charge Onduleur</span>
+                    <span class="card-icon load">📊</span>
+                </div>
+                <div class="card-body">
+                    <div class="main-metric">
+                        <span class="metric-value" id="load-pct">--</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar" id="load-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="sub-metrics">
+                        <div class="sub-metric">
+                            <span class="sub-label">Capacité</span>
+                            <span class="sub-val" id="nominal-va">1600 VA</span>
+                        </div>
+                        <div class="sub-metric">
+                            <span class="sub-label">Tension</span>
+                            <span class="sub-val" id="output-voltage">230 V</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Batterie & Autonomie -->
+            <div class="card kpi-card">
+                <div class="card-header">
+                    <span class="card-title">Batterie & Autonomie</span>
+                    <span class="card-icon battery">🔋</span>
+                </div>
+                <div class="card-body">
+                    <div class="main-metric">
+                        <span class="metric-value" id="battery-charge">--</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar battery" id="battery-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="sub-metrics">
+                        <div class="sub-metric">
+                            <span class="sub-label">Autonomie</span>
+                            <span class="sub-val highlight" id="battery-runtime">-- min</span>
+                        </div>
+                        <div class="sub-metric">
+                            <span class="sub-label">Fréquence</span>
+                            <span class="sub-val" id="output-freq">50.0 Hz</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Énergie & Coût -->
+            <div class="card kpi-card">
+                <div class="card-header">
+                    <span class="card-title">Consommation & Coût</span>
+                    <span class="card-icon cost">💶</span>
+                </div>
+                <div class="card-body">
+                    <div class="main-metric">
+                        <span class="metric-value" id="cost-24h">--</span>
+                        <span class="metric-unit" id="cost-unit">€</span>
+                        <span class="metric-sub-tag">/ 24h</span>
+                    </div>
+                    <div class="sub-metrics">
+                        <div class="sub-metric">
+                            <span class="sub-label">Énergie 24h</span>
+                            <span class="sub-val" id="kwh-24h">-- kWh</span>
+                        </div>
+                        <div class="sub-metric">
+                            <span class="sub-label">Est. mensuelle</span>
+                            <span class="sub-val" id="cost-month">-- €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Chart Section -->
+        <section class="card chart-card">
+            <div class="chart-header">
+                <div class="chart-title-wrap">
+                    <h2>Historique de Puissance</h2>
+                    <span class="chart-subtitle" id="chart-summary">Chargement des données...</span>
+                </div>
+                <!-- Range Selector Pills -->
+                <div class="range-selector" id="range-pills">
+                    <button class="pill-btn" data-range="1h">1h</button>
+                    <button class="pill-btn" data-range="6h">6h</button>
+                    <button class="pill-btn active" data-range="24h">24h</button>
+                    <button class="pill-btn" data-range="48h">48h</button>
+                    <button class="pill-btn" data-range="7d">7j</button>
+                    <button class="pill-btn" data-range="30d">30j</button>
+                    <button class="pill-btn" data-range="all">Tout</button>
+                </div>
+            </div>
+
+            <div class="chart-canvas-wrapper">
+                <canvas id="consoChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Bottom Grid: Outages & Technical Info -->
+        <section class="bottom-grid">
+            <!-- Outages History -->
+            <div class="card outages-card">
+                <div class="card-header">
+                    <span class="card-title">Historique des Coupures</span>
+                    <span class="badge" id="outages-count">0 coupure</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Début</th>
+                                    <th>Fin</th>
+                                    <th>Durée</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="outages-tbody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">Aucune coupure enregistrée récemment.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Energy & Stats Summary -->
+            <div class="card stats-summary-card">
+                <div class="card-header">
+                    <span class="card-title">Synthèse Énergétique</span>
+                    <span class="badge badge-outline" id="records-count">-- mesures</span>
+                </div>
+                <div class="card-body">
+                    <div class="stats-list">
+                        <div class="stat-row">
+                            <span class="stat-label">Puissance min (24h)</span>
+                            <span class="stat-value" id="stat-min-watts">-- W</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Puissance moy (24h)</span>
+                            <span class="stat-value" id="stat-avg-watts">-- W</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Puissance max (24h)</span>
+                            <span class="stat-value" id="stat-max-watts">-- W</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-row">
+                            <span class="stat-label">Projection mensuelle</span>
+                            <span class="stat-value" id="stat-projected-month">-- kWh (~ -- €)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Projection annuelle</span>
+                            <span class="stat-value" id="stat-projected-year">-- kWh (~ -- €)</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Énergie totale enregistrée</span>
+                            <span class="stat-value highlight" id="stat-total-kwh">-- kWh (~ -- €)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay hidden" id="settings-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>Paramètres de Consommation</h3>
+                <button class="modal-close" id="btn-close-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="input-pf">Facteur de puissance (cos φ) :</label>
+                    <div class="input-with-hint">
+                        <input type="number" id="input-pf" min="0.5" max="1.0" step="0.05" value="0.7">
+                        <small>Efficacité énergétique pour convertir les VA en Watts (typiquement 0.7 pour informatique).</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-price">Prix du kWh :</label>
+                    <div class="input-with-hint">
+                        <input type="number" id="input-price" min="0" step="0.01" value="0.25">
+                        <small>Tarif de votre fournisseur d'électricité (ex: 0.2516 en tarif base EDF).</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-currency">Devise :</label>
+                    <input type="text" id="input-currency" value="€" maxlength="5">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-cancel-settings">Annuler</button>
+                <button class="btn btn-primary" id="btn-save-settings">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">Paramètres sauvegardés</div>
+
+    <!-- Script -->
     <script src="/static/script.js"></script>
 </body>
 </html>
