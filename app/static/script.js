@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(fetchOutages, 15000);     // Outages every 15s
     setInterval(() => {
         // Auto-refresh chart smoothly every 30s for short ranges
-        if (['1h', '6h', '24h'].includes(currentRange)) {
+        if (['1h', '6h', '12h', '24h'].includes(currentRange)) {
             fetchConsoChart(currentRange, true);
         }
     }, 30000);
@@ -244,7 +244,7 @@ function formatChartDate(date, range) {
     const d = pad(date.getDate());
     const mo = pad(date.getMonth() + 1);
 
-    if (range === '1h' || range === '6h' || range === '24h') {
+    if (range === '1h' || range === '6h' || range === '12h' || range === '24h') {
         return `${h}h${m}`;
     } else if (range === '48h' || range === '7d' || range === '14d') {
         return `${d}/${mo} ${h}h`;

@@ -125,7 +125,7 @@ def api_ups():
 def api_conso():
     """
     Returns time series with automatic downsampling.
-    Range parameter: 1h, 2h, 4h, 8h, 24h, 48h, 7d, 14d, 30d, 1y, all.
+    Range parameter: 1h, 2h, 4h, 6h, 8h, 12h, 24h, 48h, 7d, 14d, 30d, 1y, all.
     """
     range_key = request.args.get("range", "24h")
     try:
