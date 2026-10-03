@@ -20,6 +20,8 @@ Ce projet est né suite à l'acquisition d'un onduleur **EATON Ellipse ECO 1600*
 
 **Alors est née cette application** : offrir une interface moderne, ultra-légère, autonome et instantanée pour monitorer l'onduleur 24h/24 sans aucune dépendance lourde.
 
+<img width="1888" height="933" alt="image" src="https://github.com/user-attachments/assets/6becefbc-d6da-49fd-8e32-a03616381cd0" />
+
 ---
 
 ## ✨ Fonctionnalités clés
